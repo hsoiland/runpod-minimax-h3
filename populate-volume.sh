@@ -8,12 +8,16 @@
 #   VOL_ROOT   mount point of the network volume   (default /runpod-volume)
 #   MANIFEST   path to models-manifest.txt         (default: next to this script)
 #   HF_TOKEN   optional Hugging Face token for gated repos
+#   ALT_MODEL_ROOTS  colon-separated extra models/ roots already on the volume
+#              (default /runpod-volume/ComfyUI/models); a file found there
+#              counts as present and is not downloaded again
 set -uo pipefail
 
 VOL_ROOT="${VOL_ROOT:-/runpod-volume}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MANIFEST="${MANIFEST:-$SCRIPT_DIR/models-manifest.txt}"
 M="$VOL_ROOT/models"
+IFS=: read -ra ALT_ROOTS <<< "${ALT_MODEL_ROOTS:-$VOL_ROOT/ComfyUI/models}"
 
 if [ ! -d "$VOL_ROOT" ]; then
     echo "populate: $VOL_ROOT not mounted — nothing to do"
@@ -39,6 +43,14 @@ while IFS=$'\t' read -r sub name url; do
     dest="$M/$sub/$name"
     if [ -f "$dest" ]; then
         echo "populate: [$done_n/$total] skip $name (present)"
+        continue
+    fi
+    alt=""
+    for root in "${ALT_ROOTS[@]}"; do
+        [ -f "$root/$sub/$name" ] && alt="$root" && break
+    done
+    if [ -n "$alt" ]; then
+        echo "populate: [$done_n/$total] skip $name (present in $alt)"
         continue
     fi
     echo "populate: [$done_n/$total] downloading $name -> models/$sub/"

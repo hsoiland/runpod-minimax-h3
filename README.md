@@ -30,12 +30,13 @@ A production-ready [Runpod Serverless](https://docs.runpod.io/serverless/overvie
 
 - **GPU**: 96GB class (`BLACKWELL_96` pool). The 32B text encoder + two video DiTs + TensorRT engines need the headroom.
 - **Network volume**: ≥160GB at `/runpod-volume`. Models auto-download from `models-manifest.txt` (~100GB). Disable with `VOLUME_AUTOPOPULATE=false`.
+- **Reusing a pod volume**: models already under `/runpod-volume/ComfyUI/models` (e.g. a volume filled by the [Hearmeman comfyui-minimax](https://github.com/Hearmeman24/comfyui-minimax) pod, where it was `/workspace/ComfyUI/models`) are loaded too and skipped by auto-populate. Override with `ALT_MODEL_ROOTS` (colon-separated).
 - **CUDA**: 13.0+ hosts.
 
 ## Model stack (auto-provisioned)
 
 - DiTs: Comfy-Org `minimax_h3_fl2va` INT8, `Minimax-h3_Singularity_ref2va` INT8 (T2V/I2V/R2V/V2V in one unet)
-- Text encoder: `qwen3vl_32b_heretic_minimax_h3_nvfp4` (Momoking)
+- Text encoder: Comfy-Org `qwen3vl_32b_minimax_h3_int8_convrot` (override with `TEXT_ENCODER`; applied to every graph's CLIPLoader)
 - Turbo LoRAs: lightx2v fl2v/ref2v 8-step · Style LoRAs: `h3-realism-people` (fal), `h3_character_swap` (akatz)
 - VAEs: video fp16 + audio fp32, `taeh3` preview · Face detailer: `face_yolov8m` + `sam_vit_b`
 - Enhancer LLM: Qwen3.5-9B Defiant-Fable NEO-MAX Q6_K GGUF + mmproj (also drives the Director's auto-Analyze/Enhance)

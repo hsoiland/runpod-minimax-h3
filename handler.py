@@ -38,6 +38,13 @@ COMFY_DIR = os.environ.get("COMFYUI_DIR", "/workspace/runpod-slim/ComfyUI")
 COMFY_URL = "http://127.0.0.1:8188"
 WORKFLOWS_DIR = Path(os.environ.get("WORKFLOWS_DIR", "/opt/workflows"))
 JOB_TIMEOUT_S = int(os.environ.get("JOB_TIMEOUT_S", "1800"))
+# Extra models/ roots on the volume (e.g. a pod template's ComfyUI/models),
+# registered by the entrypoint in extra_model_paths.yaml.
+# Text encoder every graph's Qwen3-VL-32B CLIPLoader is pointed at (synced
+# ForgeHub graphs included) — the Comfy-Org INT8 one, shared with the
+# Hearmeman comfyui-minimax pod volume.
+TEXT_ENCODER = os.environ.get("TEXT_ENCODER", "qwen3vl_32b_minimax_h3_int8_convrot.safetensors")
+ALT_MODEL_ROOTS = [r for r in os.environ.get("ALT_MODEL_ROOTS", "/runpod-volume/ComfyUI/models").split(":") if r]
 
 # Workflows boot-synced from the ForgeHub repo override the baked copies, so a
 # workflow edit lands at the next cold boot without rebuilding the image.
@@ -334,8 +341,8 @@ def _patch(prompt, job):
     def _find_file(kind, needle):
         """Locate a model file under the volume + local model dirs."""
         hits = sorted(
-            h for pat in (f"/runpod-volume/models/{kind}/**/*", f"{COMFY_DIR}/models/{kind}/**/*")
-            for h in glob.glob(pat, recursive=True)
+            h for root in ("/runpod-volume/models", *ALT_MODEL_ROOTS, f"{COMFY_DIR}/models")
+            for h in glob.glob(f"{root}/{kind}/**/*", recursive=True)
             if needle.lower() in Path(h).name.lower())
         # "fl2va"/"ref2va" needles must not grab 10Eros files which also contain them
         if needle.lower() in ("fl2va", "ref2va"):
@@ -364,6 +371,8 @@ def _patch(prompt, job):
                 img_idx += 1
         elif "LoadVideo" in ct and video_name:
             inp["video"] = video_name
+        if ct == "CLIPLoader" and str(inp.get("clip_name", "")).startswith("qwen3vl_32b") and TEXT_ENCODER:
+            inp["clip_name"] = TEXT_ENCODER
         if ct == "MiniMaxH3DirectorCS" and director_nodes:
             # Native: inject the form-built timeline. Storyboard: leave the baked
             # one (its refs come from the socket). Either way the window follows
