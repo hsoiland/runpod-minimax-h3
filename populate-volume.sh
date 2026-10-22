@@ -32,6 +32,21 @@ fi
 exec 9>"$VOL_ROOT/.populate.lock"
 flock 9
 
+# Downloads stage under $STAGE, outside every models/ folder: ComfyUI scans
+# those recursively, and a half-downloaded file (or its temp dir vanishing
+# mid-scan) breaks its file lists. Per-worker subdirs, because flock on the
+# network volume may not serialize across machines.
+STAGE="$VOL_ROOT/.populate-tmp"
+WORKER_STAGE="$STAGE/$(hostname)-$$"
+mkdir -p "$WORKER_STAGE"
+trap 'rm -rf "$WORKER_STAGE"' EXIT
+# Leftovers from workers killed mid-download (no file touched for an hour),
+# plus the in-folder .tmp_hf_* dirs older versions of this script left.
+for d in "$STAGE"/*/ "$M"/*/.tmp_hf_*/ "$M"/*/*/.tmp_hf_*/; do
+    [ -d "$d" ] && [ "${d%/}" != "$WORKER_STAGE" ] || continue
+    find "$d" -type f -mmin -60 2>/dev/null | grep -q . || { echo "populate: removing stale ${d%/}"; rm -rf "$d"; }
+done
+
 echo "populate: free space on $VOL_ROOT: $(df -h "$VOL_ROOT" | awk 'NR==2{print $4" of "$2}')"
 total=$(grep -vc '^\s*\(#\|$\)' "$MANIFEST")
 done_n=0
@@ -67,7 +82,7 @@ while IFS=$'\t' read -r sub name url; do
         # disk (30GB cap) and dies with EDQUOT on multi-GB files.
         repo_id=$(echo "$url" | awk -F/ '{print $4"/"$5}')
         repo_path=$(echo "$url" | sed -E 's#https?://[^/]+/[^/]+/[^/]+/resolve/[^/]+/(.+)#\1#')
-        tmp_dir="$M/$sub/.tmp_hf_$name"
+        tmp_dir="$WORKER_STAGE/$name"
         rm -rf "$tmp_dir"; mkdir -p "$tmp_dir"
         export HF_HUB_ENABLE_HF_TRANSFER=1 HF_HUB_DISABLE_XET=1
         if hf download "$repo_id" "$repo_path" --local-dir "$tmp_dir" && [ -f "$tmp_dir/$repo_path" ]; then

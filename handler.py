@@ -981,6 +981,8 @@ async def handler(job):
             "comfy_log_tail": _log_tail("/workspace/comfy.log", 40),
             "loras": _list_models("loras"),
             "checkpoints": _list_models("checkpoints") + _list_models("diffusion_models"),
+            "text_encoders": _list_models("text_encoders"),
+            "vae": _list_models("vae"),
         }
     # Any real workload needs ComfyUI — wait for the background boot first.
     await _ensure_comfy()
