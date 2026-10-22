@@ -75,6 +75,15 @@ if [ "${VOLUME_AUTOPOPULATE:-true}" = "true" ]; then
     /opt/serverless/populate-volume.sh || echo "entrypoint: volume populate failed — jobs may error on missing models" >&2
 fi
 
+# Flag truncated files in the alt roots (e.g. LoRAs a pod sync never finished
+# copying) — ComfyUI would only fail on them mid-job.
+for root in "${alt_roots[@]}"; do
+    [ -d "$root" ] || continue
+    find "$root" -name '*.safetensors' -type f -print0 \
+        | xargs -0 -r python3 /opt/serverless/check-safetensors.py \
+        | sed 's/^/entrypoint: incomplete model (ignored unless used): /' >&2 || true
+done
+
 # CivitAI LoRAs / checkpoints by version ID — same env names as the
 # Hearmeman pod template (legacy spellings + CIVITAI_API_KEY accepted).
 # Checkpoints land in models/checkpoints, which is also registered as a

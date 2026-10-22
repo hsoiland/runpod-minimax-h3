@@ -47,7 +47,13 @@ while IFS=$'\t' read -r sub name url; do
     fi
     alt=""
     for root in "${ALT_ROOTS[@]}"; do
-        [ -f "$root/$sub/$name" ] && alt="$root" && break
+        [ -f "$root/$sub/$name" ] || continue
+        # Only trust a complete copy: an interrupted pod sync leaves truncated
+        # files there. A good copy lands in $M, which ComfyUI searches first.
+        if python3 "$SCRIPT_DIR/check-safetensors.py" "$root/$sub/$name"; then
+            alt="$root"; break
+        fi
+        echo "populate: [$done_n/$total] $root/$sub/$name is incomplete — downloading a fresh copy"
     done
     if [ -n "$alt" ]; then
         echo "populate: [$done_n/$total] skip $name (present in $alt)"

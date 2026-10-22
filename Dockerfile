@@ -75,6 +75,7 @@ COPY handler.py /opt/serverless/handler.py
 COPY serverless-entrypoint.sh /opt/serverless/entrypoint.sh
 COPY populate-volume.sh /opt/serverless/populate-volume.sh
 COPY civitai-download.py /opt/serverless/civitai-download.py
+COPY check-safetensors.py /opt/serverless/check-safetensors.py
 COPY models-manifest.txt /opt/serverless/models-manifest.txt
 COPY workflows-api/mmh3/ /opt/workflows/
 RUN chmod +x /opt/serverless/entrypoint.sh /opt/serverless/populate-volume.sh

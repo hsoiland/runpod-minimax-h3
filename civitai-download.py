@@ -18,6 +18,7 @@ jobs can reference a LoRA/checkpoint by its version ID.
 """
 import json
 import os
+import subprocess
 import sys
 import urllib.parse
 import urllib.request
@@ -59,6 +60,11 @@ def _pick_file(files):
             or models[0])
 
 
+def _complete(path):
+    check = Path(__file__).with_name("check-safetensors.py")
+    return subprocess.run([sys.executable, str(check), str(path)]).returncode == 0
+
+
 def _download(url, dest):
     part = dest.with_name(dest.name + ".part")
     have = part.stat().st_size if part.exists() else 0
@@ -90,7 +96,7 @@ def fetch(kind, vid):
         "trained_words": meta.get("trainedWords") or [],
     }))
     for root in (MODELS, *ALT_ROOTS):
-        if (root / kind / name).is_file():
+        if (root / kind / name).is_file() and _complete(root / kind / name):
             print(f"civitai: skip {kind}/{name} (present in {root})", flush=True)
             return
     print(f"civitai: downloading {vid} -> models/{kind}/{name} "
