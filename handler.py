@@ -111,6 +111,7 @@ def _http(path, payload=None, timeout=30):
 
 _BOOT_DONE = threading.Event()
 _BOOT_ERR = None
+_BOOT_T0 = time.time()
 
 
 def _boot_comfy():
@@ -124,7 +125,10 @@ def _boot_comfy():
     ] + os.environ.get("COMFYUI_EXTRA_ARGS", "").split()
     comfy_log = open("/workspace/comfy.log", "ab", buffering=0)
     proc = subprocess.Popen(cmd, cwd=COMFY_DIR, stdout=comfy_log, stderr=subprocess.STDOUT)
-    deadline = time.time() + 600
+    # Cold first boot imports every node pack off a fresh container; give it
+    # room (BOOT_TIMEOUT_S) — the endpoint's executionTimeout must exceed it.
+    boot_timeout = int(os.environ.get("BOOT_TIMEOUT_S", "1200"))
+    deadline = time.time() + boot_timeout
     while time.time() < deadline:
         if proc.poll() is not None:
             raise RuntimeError("ComfyUI exited during boot")
@@ -133,7 +137,7 @@ def _boot_comfy():
             return proc
         except Exception:
             time.sleep(2)
-    raise RuntimeError("ComfyUI did not become ready in 600s")
+    raise RuntimeError(f"ComfyUI did not become ready in {boot_timeout}s")
 
 
 def _sync_workflows():
@@ -951,6 +955,16 @@ def _collect_outputs(history_entry, prompt, job, inline_used):
     return out, texts
 
 
+def _log_tail(path, n):
+    try:
+        with open(path, "rb") as f:
+            f.seek(0, 2)
+            f.seek(max(0, f.tell() - 16384))
+            return f.read().decode(errors="replace").splitlines()[-n:]
+    except OSError:
+        return []
+
+
 async def handler(job):
     print(f"[handler] job {job.get('id')} received", flush=True)
     inputs = job.get("input") or {}
@@ -963,6 +977,8 @@ async def handler(job):
             "comfyui_error": str(_BOOT_ERR) if _BOOT_ERR else None,
             "workflows": sorted({p.name for d in (WF_SYNC_DIR, WORKFLOWS_DIR) for p in d.glob("*.json")}),
             "volume_mounted": os.path.isdir("/runpod-volume"),
+            "uptime_s": round(time.time() - _BOOT_T0),
+            "comfy_log_tail": _log_tail("/workspace/comfy.log", 40),
             "loras": _list_models("loras"),
             "checkpoints": _list_models("checkpoints") + _list_models("diffusion_models"),
         }
