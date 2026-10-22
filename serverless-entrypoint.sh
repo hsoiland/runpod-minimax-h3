@@ -42,6 +42,7 @@ $1:
   ultralytics_segm: ultralytics/segm
   sams: sams
   upscale_models: upscale_models
+  latent_upscale_models: latent_upscale_models
 YAML
 }
 {

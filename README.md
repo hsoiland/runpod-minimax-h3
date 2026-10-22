@@ -70,7 +70,7 @@ A production-ready [Runpod Serverless](https://docs.runpod.io/serverless/overvie
 
 ## Custom nodes baked in
 
-`ComfyUI-VideoHelperSuite` · `ComfyUI-Easy-Use` · `ComfyUI-Impact-Pack` · `ComfyUI-Impact-Subpack` · `ComfyUI-QwenVL-Mod` · `ComfyUI-MiniMaxH3-Director` · `ComfyUI-RIFE-TensorRT-Auto` · `ComfyUI-Upscaler-TensorRT-Auto` · `ComfyUI-TagForge` · `ComfyUI-PerfectVideoResolution` · `ComfyUI-Pixaroma` · `ComfyUI-KJNodes`
+`ComfyUI-VideoHelperSuite` · `ComfyUI-Easy-Use` · `ComfyUI-Impact-Pack` · `ComfyUI-Impact-Subpack` · `ComfyUI-QwenVL-Mod` · `ComfyUI-MiniMaxH3-Director` · `ComfyUI-RIFE-TensorRT-Auto` · `ComfyUI-Upscaler-TensorRT-Auto` · `ComfyUI-TagForge` · `ComfyUI-PerfectVideoResolution` · `ComfyUI-Pixaroma` · `ComfyUI-KJNodes` · Hearmeman set: `rgthree-comfy` · `ComfyUI-Openrouter_node` · `ComfyUI-MiniMaxRefPack` · `ComfyUI-MiniMaxH3Mod` · `Comfyui_Minimax_h3_latent_Upscaler` · `ComfyUI-Spectrum-MiniMax-H3` (export their workflows with **Export (API)** and pass them as `prompt_graph`, or drop them in `workflows-api/mmh3/`; Auto Prompt needs `LLM_KEY`)
 
 ## Companion stack
 

@@ -30,7 +30,16 @@ RUN dl() { \
     dl pixaroma ComfyUI-Pixaroma main ComfyUI-Pixaroma && \
     dl kijai ComfyUI-KJNodes main ComfyUI-KJNodes && \
     dl ltdrdata ComfyUI-Impact-Pack Main ComfyUI-Impact-Pack && \
-    dl ltdrdata ComfyUI-Impact-Subpack main ComfyUI-Impact-Subpack
+    dl ltdrdata ComfyUI-Impact-Subpack main ComfyUI-Impact-Subpack && \
+    # Hearmeman comfyui-minimax node set, so its workflows (exported in API
+    # format) run here too: Power Lora Loader / Display Any, the Auto Prompt
+    # OpenRouter node, the R2V reference pack, RefMod, latent upscaler, Spectrum
+    dl rgthree rgthree-comfy main rgthree-comfy && \
+    dl gabe-init ComfyUI-Openrouter_node main ComfyUI-Openrouter_node && \
+    dl Hearmeman24 ComfyUI-MiniMaxRefPack main ComfyUI-MiniMaxRefPack && \
+    dl Luisacaotica ComfyUI-MiniMaxH3Mod main ComfyUI-MiniMaxH3Mod && \
+    dl LBH-123-AI Comfyui_Minimax_h3_latent_Upscaler main Comfyui_Minimax_h3_latent_Upscaler && \
+    dl xmarre ComfyUI-Spectrum-MiniMax-H3 main ComfyUI-Spectrum-MiniMax-H3
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -55,7 +64,7 @@ RUN bash -c 'cd /opt/comfyui-baked/custom_nodes && for node_dir in */; do \
 # Model dirs (empty — real models come from the network volume via
 # extra_model_paths.yaml written by the entrypoint)
 # ──────────────────────────────────────────────────────────────────────────────
-RUN mkdir -p /opt/comfyui-baked/models/{vae,vae_approx,diffusion_models,unet,text_encoders,clip_projections,loras,checkpoints,LLM,clip,clip_vision,ultralytics/bbox,sams}
+RUN mkdir -p /opt/comfyui-baked/models/{vae,vae_approx,diffusion_models,unet,text_encoders,clip_projections,loras,checkpoints,latent_upscale_models,LLM,clip,clip_vision,ultralytics/bbox,sams}
 
 ENV HF_TOKEN=""
 

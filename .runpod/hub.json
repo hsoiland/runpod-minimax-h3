@@ -54,6 +54,16 @@
         }
       },
       {
+        "key": "LLM_KEY",
+        "input": {
+          "name": "OpenRouter API key",
+          "type": "string",
+          "description": "Only for Hearmeman Auto Prompt / R2V reference-pack workflows (OpenRouter node + MiniMaxRefPack read LLM_KEY).",
+          "default": "",
+          "advanced": true
+        }
+      },
+      {
         "key": "HF_TOKEN",
         "input": {
           "name": "Hugging Face token",
