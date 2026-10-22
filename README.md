@@ -42,6 +42,16 @@ A production-ready [Runpod Serverless](https://docs.runpod.io/serverless/overvie
 - VAEs: video fp16 + audio fp32, `taeh3` preview · Face detailer: `face_yolov8m` + `sam_vit_b`
 - Enhancer LLM: Qwen3.5-9B Defiant-Fable NEO-MAX Q6_K GGUF + mmproj (also drives the Director's auto-Analyze/Enhance)
 
+### Hearmeman workflows (API exports)
+
+`MiniMax - T2V|I2V - Custom Prompt|Auto Prompt[ - Upscaling].json`, `MiniMax - R2V - Auto Prompt[ - Upscaling].json`, `MiniMax - RefMod.json` — exported from the [Hearmeman comfyui-minimax](https://github.com/Hearmeman24/comfyui-minimax) pod with `tools/export-api-workflows.mjs` (ComfyUI's own Export (API), driven headless). Same job keys: `prompt`, `images` (I2V first frame / R2V references), `video` (R2V reference clip), `seconds`, `video_size` or `aspect_ratio` + `megapixels`, `seed`, `loras`, `checkpoint`. Auto Prompt / R2V need an OpenRouter key: `LLM_KEY` env or `openrouter_api_key` in the job.
+
+```json
+{"input": {"workflow": "MiniMax - I2V - Custom Prompt", "prompt": "she turns and smiles", "images": ["<b64>"], "seconds": 5, "video_size": "768x1344 (9:16)", "loras": ["123456"]}}
+```
+
+Re-export after an upstream change: `node tools/export-api-workflows.mjs https://<pod>-8188.proxy.runpod.net workflows-api/mmh3 <ui workflows>.json` (needs `npm i playwright-core` + Chrome).
+
 ## Job input
 
 ```json

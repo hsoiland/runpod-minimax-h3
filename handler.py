@@ -439,7 +439,9 @@ def _patch(prompt, job):
                 inp["duration"] = f"{sec}s"
             elif "length" in inp and not isinstance(inp["length"], list):
                 inp["length"] = sec * 24
-            elif "value" in inp and ct.startswith("Primitive"):
+            elif "value" in inp and ct in ("PrimitiveFloat", "PrimitiveInt"):
+                # numeric only — PrimitiveString(Multiline) carries the prompt
+                # / API key on the Hearmeman graphs
                 inp["value"] = sec
         if "lora_name" in inp:
             cur_lora = str(inp.get("lora_name", "")).lower()
@@ -545,6 +547,7 @@ def _patch(prompt, job):
                 for k, v in n.get("inputs", {}).items():
                     if isinstance(v, list) and v and v[0] == drop_lora:
                         n["inputs"][k] = src
+    _patch_hearmeman(prompt, job, images, video_name)
     # job.checkpoint swaps every UNETLoader's weights (CivitAI checkpoints land
     # in models/checkpoints, registered as a diffusion_models dir). Wins over
     # the config preset's unet needle.
@@ -744,6 +747,64 @@ def _patch(prompt, job):
                                       for t in re.findall(r"dd?|MM?|hh?|HH?|mm?|ss?|yyy?y?|.", m.group(1))),
                     v)
     return prompt
+
+
+# ResolutionSelector's aspect_ratio options
+HM_ASPECTS = ["1:1 (Square)", "2:3 (Portrait Photo)", "3:2 (Photo)", "3:4 (Portrait Standard)",
+              "4:3 (Standard)", "9:16 (Portrait Widescreen)", "16:9 (Widescreen)", "21:9 (Ultrawide)"]
+_ratio = lambda a: int(a.split(" ")[0].split(":")[0]) / int(a.split(" ")[0].split(":")[1])
+
+
+def _patch_hearmeman(prompt, job, images, video_name):
+    """Inputs for the Hearmeman comfyui-minimax graphs (tools/export-api-workflows.mjs
+    exports). Those carry the prompt on a "Your Prompt…" PrimitiveStringMultiline,
+    size on a ResolutionSelector, the OpenRouter key on a PrimitiveString and,
+    for R2V, prompt + references on the MiniMaxH3ReferencePack node."""
+    title = lambda n: n.get("_meta", {}).get("title", "")
+    llm_key = job.get("openrouter_api_key") or os.environ.get("OPENROUTER_API_KEY") \
+        or os.environ.get("LLM_KEY") or ""
+    size = str(job.get("video_size") or "")
+    m = re.match(r"\s*(\d+)\s*x\s*(\d+)", size)
+    aspect = job.get("aspect_ratio")
+    mp = job.get("megapixels")
+    if m and not aspect:
+        w, h = int(m.group(1)), int(m.group(2))
+        tag = re.search(r"\((\d+:\d+)\)", size)
+        aspect = tag.group(1) if tag else min(HM_ASPECTS, key=lambda a: abs(_ratio(a) - w / h))
+        mp = mp or round(w * h / 1e6, 2)
+    for n in prompt.values():
+        ct, inp = n.get("class_type", ""), n.get("inputs", {})
+        if ct == "PrimitiveStringMultiline" and title(n).startswith("Your Prompt") \
+                and job.get("prompt") is not None:
+            inp["value"] = job["prompt"]
+        elif ct == "PrimitiveString" and "api key" in title(n).lower() and not inp.get("value"):
+            inp["value"] = llm_key
+        elif ct == "ResolutionSelector":
+            if aspect:
+                opt = next((o for o in HM_ASPECTS if o.split(" ")[0] == str(aspect).split(" ")[0]), None)
+                if opt:
+                    inp["aspect_ratio"] = opt
+            if mp:
+                inp["megapixels"] = float(mp)
+        elif ct == "MiniMaxH3ReferencePack":
+            if job.get("prompt") is not None:
+                inp["direction"] = job["prompt"]
+            refs = [{"kind": "image", "file": f} for f in images]
+            if video_name:
+                refs.append({"kind": "video", "file": video_name, "use_soundtrack": True})
+            if refs:
+                inp["references_json"] = json.dumps({"references": refs})
+        elif ct == "UNETLoader":
+            # His Upscaling graphs are saved on the bf16 DiTs (the pod swaps per
+            # quant profile at provision time) — fall back to whichever
+            # Comfy-Org fl2va/ref2va build is on the volume.
+            cur = str(inp.get("unet_name", ""))
+            have = _list_models("diffusion_models")
+            fam = next((f for f in ("fl2va", "ref2va") if f"minimax_h3_{f}" in cur), None)
+            if fam and cur not in have:
+                alt = next((h for h in have if h.startswith(f"minimax_h3_{fam}")), None)
+                if alt:
+                    inp["unet_name"] = alt
 
 
 def _apply_node_params(prompt, params):

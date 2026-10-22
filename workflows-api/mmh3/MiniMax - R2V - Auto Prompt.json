@@ -1,0 +1,445 @@
+{
+  "115": {
+    "inputs": {
+      "aspect_ratio": "2:3 (Portrait Photo)",
+      "megapixels": 0.7,
+      "multiple": 32
+    },
+    "class_type": "ResolutionSelector",
+    "_meta": {
+      "title": "Resolution Selector"
+    }
+  },
+  "119": {
+    "inputs": {
+      "frame_rate": 24,
+      "loop_count": 0,
+      "filename_prefix": "AnimateDiff",
+      "format": "video/h264-mp4",
+      "pix_fmt": "yuv420p",
+      "crf": 12,
+      "save_metadata": false,
+      "trim_to_audio": false,
+      "pingpong": false,
+      "save_output": true,
+      "images": [
+        "133",
+        0
+      ],
+      "audio": [
+        "134",
+        0
+      ]
+    },
+    "class_type": "VHS_VideoCombine",
+    "_meta": {
+      "title": "Video Combine 🎥🅥🅗🅢"
+    }
+  },
+  "121": {
+    "inputs": {
+      "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "Load VAE"
+    }
+  },
+  "122": {
+    "inputs": {
+      "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "Load VAE"
+    }
+  },
+  "127": {
+    "inputs": {
+      "clip_name": "qwen3vl_32b_minimax_h3_int8_convrot.safetensors",
+      "type": "minimax",
+      "device": "default"
+    },
+    "class_type": "CLIPLoader",
+    "_meta": {
+      "title": "Load CLIP"
+    }
+  },
+  "132": {
+    "inputs": {
+      "value": 5
+    },
+    "class_type": "PrimitiveFloat",
+    "_meta": {
+      "title": "Float (duration)"
+    }
+  },
+  "133": {
+    "inputs": {
+      "samples": [
+        "153",
+        0
+      ],
+      "vae": [
+        "121",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "134": {
+    "inputs": {
+      "samples": [
+        "153",
+        0
+      ],
+      "vae": [
+        "122",
+        0
+      ]
+    },
+    "class_type": "VAEDecodeAudio",
+    "_meta": {
+      "title": "VAE Decode Audio"
+    }
+  },
+  "135": {
+    "inputs": {
+      "unet_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+      "weight_dtype": "default"
+    },
+    "class_type": "UNETLoader",
+    "_meta": {
+      "title": "Load Diffusion Model"
+    }
+  },
+  "137": {
+    "inputs": {
+      "PowerLoraLoaderHeaderWidget": {
+        "type": "PowerLoraLoaderHeaderWidget"
+      },
+      "➕ Add Lora": "",
+      "model": [
+        "141",
+        0
+      ],
+      "clip": [
+        "127",
+        0
+      ]
+    },
+    "class_type": "Power Lora Loader (rgthree)",
+    "_meta": {
+      "title": "Power Lora Loader (rgthree)"
+    }
+  },
+  "141": {
+    "inputs": {
+      "max_resolution": 1024,
+      "jpeg_quality": 92,
+      "suppress_default_preview": true,
+      "preview_frames": [
+        "177",
+        1
+      ],
+      "preview_fps": 5,
+      "tiny_vae": "taeh3.safetensors",
+      "model": [
+        "135",
+        0
+      ]
+    },
+    "class_type": "ModelPreviewOverrideKJ",
+    "_meta": {
+      "title": "Model Preview Override"
+    }
+  },
+  "149": {
+    "inputs": {
+      "model": [
+        "158",
+        0
+      ],
+      "conditioning": [
+        "184",
+        0
+      ]
+    },
+    "class_type": "BasicGuider",
+    "_meta": {
+      "title": "Basic Guider"
+    }
+  },
+  "150": {
+    "inputs": {
+      "sampler_name": "euler"
+    },
+    "class_type": "KSamplerSelect",
+    "_meta": {
+      "title": "KSamplerSelect"
+    }
+  },
+  "153": {
+    "inputs": {
+      "noise": [
+        "154",
+        0
+      ],
+      "guider": [
+        "149",
+        0
+      ],
+      "sampler": [
+        "150",
+        0
+      ],
+      "sigmas": [
+        "189",
+        0
+      ],
+      "latent_image": [
+        "184",
+        1
+      ]
+    },
+    "class_type": "SamplerCustomAdvanced",
+    "_meta": {
+      "title": "SamplerCustomAdvanced"
+    }
+  },
+  "154": {
+    "inputs": {
+      "noise_seed": 703673408085144
+    },
+    "class_type": "RandomNoise",
+    "_meta": {
+      "title": "RandomNoise"
+    }
+  },
+  "158": {
+    "inputs": {
+      "lora_name": "minimax_h3_ref2v_turbo_8step_v1.0_768p_comfyui_bf16.safetensors",
+      "strength_model": 0.85,
+      "model": [
+        "137",
+        0
+      ]
+    },
+    "class_type": "LoraLoaderModelOnly",
+    "_meta": {
+      "title": "Turbo LoRA (Always On, Don't Touch)"
+    }
+  },
+  "177": {
+    "inputs": {
+      "expression": "max(5, round(a * 24)) + (5 - (max(5, round(a * 24)) % 17)) % 17",
+      "values.a": [
+        "132",
+        0
+      ]
+    },
+    "class_type": "ComfyMathExpression",
+    "_meta": {
+      "title": "Math Expression"
+    }
+  },
+  "184": {
+    "inputs": {
+      "prompt": [
+        "185",
+        18
+      ],
+      "width": [
+        "115",
+        0
+      ],
+      "height": [
+        "115",
+        1
+      ],
+      "length": [
+        "177",
+        1
+      ],
+      "ref_image_size": "max",
+      "clip": [
+        "127",
+        0
+      ],
+      "vae": [
+        "121",
+        0
+      ],
+      "audio_vae": [
+        "122",
+        0
+      ],
+      "ref_images.ref_image_0": [
+        "185",
+        0
+      ],
+      "ref_images.ref_image_1": [
+        "185",
+        1
+      ],
+      "ref_images.ref_image_2": [
+        "185",
+        2
+      ],
+      "ref_images.ref_image_3": [
+        "185",
+        3
+      ],
+      "ref_images.ref_image_4": [
+        "185",
+        4
+      ],
+      "ref_images.ref_image_5": [
+        "185",
+        5
+      ],
+      "ref_images.ref_image_6": [
+        "185",
+        6
+      ],
+      "ref_images.ref_image_7": [
+        "185",
+        7
+      ],
+      "ref_images.ref_image_8": [
+        "185",
+        8
+      ],
+      "ref_videos.ref_video_0": [
+        "185",
+        9
+      ],
+      "ref_videos.ref_video_1": [
+        "185",
+        10
+      ],
+      "ref_videos.ref_video_2": [
+        "185",
+        11
+      ],
+      "ref_video_audios.ref_video_audio_0": [
+        "185",
+        12
+      ],
+      "ref_video_audios.ref_video_audio_1": [
+        "185",
+        13
+      ],
+      "ref_video_audios.ref_video_audio_2": [
+        "185",
+        14
+      ],
+      "ref_audios.ref_audio_0": [
+        "185",
+        15
+      ],
+      "ref_audios.ref_audio_1": [
+        "185",
+        16
+      ],
+      "ref_audios.ref_audio_2": [
+        "185",
+        17
+      ]
+    },
+    "class_type": "MiniMaxH3ReferenceToVideo",
+    "_meta": {
+      "title": "MiniMax H3 Reference to Video"
+    }
+  },
+  "185": {
+    "inputs": {
+      "direction": "The woman from <Picture 1> appears in the scene from <Video 1>, keeping her own face and clothes. One continuous shot, handheld, natural light.",
+      "references_json": "{\"references\":[]}",
+      "system_prompt": "",
+      "prompt_provider": "openrouter",
+      "openrouter_api_key": [
+        "193",
+        0
+      ],
+      "openrouter_model": "google/gemini-3-flash-preview",
+      "reasoning_effort": "none",
+      "api_base": "",
+      "local_model_slug": "",
+      "job_type": "auto",
+      "width": [
+        "115",
+        0
+      ],
+      "height": [
+        "115",
+        1
+      ],
+      "length_seconds": [
+        "132",
+        0
+      ],
+      "max_reference_edge": 2048
+    },
+    "class_type": "MiniMaxH3ReferencePack",
+    "_meta": {
+      "title": "MiniMax References Manager"
+    }
+  },
+  "186": {
+    "inputs": {
+      "output": "",
+      "source": [
+        "185",
+        18
+      ]
+    },
+    "class_type": "Display Any (rgthree)",
+    "_meta": {
+      "title": "Generated Prompt"
+    }
+  },
+  "189": {
+    "inputs": {
+      "steps": 2,
+      "start_at_sigma": 0.8,
+      "end_at_sigma": 0,
+      "spacing": "linear",
+      "sigmas": [
+        "194",
+        0
+      ]
+    },
+    "class_type": "ExtendIntermediateSigmas",
+    "_meta": {
+      "title": "ExtendIntermediateSigmas"
+    }
+  },
+  "193": {
+    "inputs": {
+      "value": ""
+    },
+    "class_type": "PrimitiveString",
+    "_meta": {
+      "title": "OpenRouter API Key"
+    }
+  },
+  "194": {
+    "inputs": {
+      "scheduler": "simple",
+      "steps": 8,
+      "denoise": 1,
+      "model": [
+        "158",
+        0
+      ]
+    },
+    "class_type": "BasicScheduler",
+    "_meta": {
+      "title": "BasicScheduler"
+    }
+  }
+}

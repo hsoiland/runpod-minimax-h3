@@ -7,6 +7,9 @@
 diffusion_models	minimax_h3_fl2va_pruned_int8_convrot.safetensors	https://huggingface.co/Comfy-Org/MiniMax-H3/resolve/main/diffusion_models/minimax_h3_fl2va_pruned_int8_convrot.safetensors
 # ── Singularity fusion (T2V/I2V/R2V/V2V in un unet solo) — NO ref_lora rank_256 sopra ──
 diffusion_models	Minimax-h3_Singularity_ref2va_Pruned_v1.3_int8.safetensors	https://huggingface.co/WarmBloodAban/Minimax-h3_Singularity/resolve/main/Minimax-h3_Singularity_ref2va_Pruned_v1.3_int8.safetensors
+# ── Hearmeman R2V graphs: Comfy-Org ref2va INT8 + its 8-step turbo LoRA ──
+diffusion_models	minimax_h3_ref2va_pruned_int8_convrot.safetensors	https://huggingface.co/Comfy-Org/MiniMax-H3/resolve/main/diffusion_models/minimax_h3_ref2va_pruned_int8_convrot.safetensors
+loras	minimax_h3_ref2v_turbo_8step_v1.0_768p_comfyui_bf16.safetensors	https://huggingface.co/lightx2v/Minimax-h3-Turbo/resolve/main/minimax_h3_ref2v_turbo_8step_v1.0_768p_comfyui_bf16.safetensors
 # ── Text encoder: Comfy-Org Qwen3-VL-32B INT8 ConvRot (same file as the Hearmeman pod) ──
 text_encoders	qwen3vl_32b_minimax_h3_int8_convrot.safetensors	https://huggingface.co/Comfy-Org/MiniMax-H3/resolve/main/text_encoders/qwen3vl_32b_minimax_h3_int8_convrot.safetensors
 # ── lightx2v Turbo LoRAs 8-step 768p ──

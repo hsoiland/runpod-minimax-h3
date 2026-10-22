@@ -1,0 +1,357 @@
+{
+  "115": {
+    "inputs": {
+      "aspect_ratio": "16:9 (Widescreen)",
+      "megapixels": 0.8,
+      "multiple": 32
+    },
+    "class_type": "ResolutionSelector",
+    "_meta": {
+      "title": "Resolution Selector"
+    }
+  },
+  "119": {
+    "inputs": {
+      "frame_rate": 24,
+      "loop_count": 0,
+      "filename_prefix": "AnimateDiff",
+      "format": "video/h264-mp4",
+      "pix_fmt": "yuv420p",
+      "crf": 12,
+      "save_metadata": false,
+      "trim_to_audio": false,
+      "pingpong": false,
+      "save_output": true,
+      "images": [
+        "133",
+        0
+      ],
+      "audio": [
+        "134",
+        0
+      ]
+    },
+    "class_type": "VHS_VideoCombine",
+    "_meta": {
+      "title": "Video Combine 🎥🅥🅗🅢"
+    }
+  },
+  "121": {
+    "inputs": {
+      "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "Load VAE"
+    }
+  },
+  "122": {
+    "inputs": {
+      "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "Load VAE"
+    }
+  },
+  "127": {
+    "inputs": {
+      "clip_name": "qwen3vl_32b_minimax_h3_int8_convrot.safetensors",
+      "type": "minimax",
+      "device": "default"
+    },
+    "class_type": "CLIPLoader",
+    "_meta": {
+      "title": "Load CLIP"
+    }
+  },
+  "130": {
+    "inputs": {
+      "prompt": [
+        "173",
+        0
+      ],
+      "width": [
+        "115",
+        0
+      ],
+      "height": [
+        "115",
+        1
+      ],
+      "length": [
+        "177",
+        1
+      ],
+      "clip": [
+        "137",
+        1
+      ],
+      "vae": [
+        "121",
+        0
+      ]
+    },
+    "class_type": "MiniMaxH3ImageToVideo",
+    "_meta": {
+      "title": "MiniMax H3 Image to Video"
+    }
+  },
+  "132": {
+    "inputs": {
+      "value": 5
+    },
+    "class_type": "PrimitiveFloat",
+    "_meta": {
+      "title": "Float (duration)"
+    }
+  },
+  "133": {
+    "inputs": {
+      "samples": [
+        "153",
+        0
+      ],
+      "vae": [
+        "121",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "134": {
+    "inputs": {
+      "samples": [
+        "153",
+        0
+      ],
+      "vae": [
+        "122",
+        0
+      ]
+    },
+    "class_type": "VAEDecodeAudio",
+    "_meta": {
+      "title": "VAE Decode Audio"
+    }
+  },
+  "135": {
+    "inputs": {
+      "unet_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+      "weight_dtype": "default"
+    },
+    "class_type": "UNETLoader",
+    "_meta": {
+      "title": "Load Diffusion Model"
+    }
+  },
+  "137": {
+    "inputs": {
+      "PowerLoraLoaderHeaderWidget": {
+        "type": "PowerLoraLoaderHeaderWidget"
+      },
+      "lora_1": {
+        "on": false,
+        "lora": "Your_Character_LoRA_Here.safetensors",
+        "strength": 1
+      },
+      "➕ Add Lora": "",
+      "model": [
+        "141",
+        0
+      ],
+      "clip": [
+        "127",
+        0
+      ]
+    },
+    "class_type": "Power Lora Loader (rgthree)",
+    "_meta": {
+      "title": "Power Lora Loader (rgthree)"
+    }
+  },
+  "141": {
+    "inputs": {
+      "max_resolution": 1024,
+      "jpeg_quality": 92,
+      "suppress_default_preview": true,
+      "preview_frames": [
+        "177",
+        1
+      ],
+      "preview_fps": 5,
+      "tiny_vae": "taeh3.safetensors",
+      "model": [
+        "135",
+        0
+      ]
+    },
+    "class_type": "ModelPreviewOverrideKJ",
+    "_meta": {
+      "title": "Model Preview Override"
+    }
+  },
+  "149": {
+    "inputs": {
+      "model": [
+        "137",
+        0
+      ],
+      "conditioning": [
+        "187",
+        0
+      ]
+    },
+    "class_type": "BasicGuider",
+    "_meta": {
+      "title": "Basic Guider"
+    }
+  },
+  "150": {
+    "inputs": {
+      "sampler_name": "euler"
+    },
+    "class_type": "KSamplerSelect",
+    "_meta": {
+      "title": "KSamplerSelect"
+    }
+  },
+  "153": {
+    "inputs": {
+      "noise": [
+        "154",
+        0
+      ],
+      "guider": [
+        "149",
+        0
+      ],
+      "sampler": [
+        "150",
+        0
+      ],
+      "sigmas": [
+        "185",
+        0
+      ],
+      "latent_image": [
+        "130",
+        1
+      ]
+    },
+    "class_type": "SamplerCustomAdvanced",
+    "_meta": {
+      "title": "SamplerCustomAdvanced"
+    }
+  },
+  "154": {
+    "inputs": {
+      "noise_seed": 537018210226930
+    },
+    "class_type": "RandomNoise",
+    "_meta": {
+      "title": "RandomNoise"
+    }
+  },
+  "173": {
+    "inputs": {
+      "value": "subject_definitions:\n<Subject 1> The selected reference character, realistic person, natural human appearance, casual stylish outfit\n\nintegrated_multimodal_description:\n[Shot 1] Live-action webcam footage with fine film grain and natural photoreal indoor lighting. A warmly lit studio and soft shallow-depth-of-field background frame <Subject 1> in a steady medium close-up, looking directly into the camera with a clear view of facial features and expressions. The shot opens immediately with <Subject 1> speaking English in a clear, enthusiastic voice, and only the quoted words are spoken. <Subject 1> (S1) says: <d>Hello! This MiniMax H3 workflow uses RefMod to keep a character consistent.</d>\n\noverall_soundscape:\nQuiet studio room tone, clear acoustic vocal presence, subtle room atmosphere.\n\nnon_diegetic_music:\nN/A"
+    },
+    "class_type": "PrimitiveStringMultiline",
+    "_meta": {
+      "title": "Your Prompt Here"
+    }
+  },
+  "177": {
+    "inputs": {
+      "expression": "max(5, round(a * 24)) + (5 - (max(5, round(a * 24)) % 17)) % 17",
+      "values.a": [
+        "132",
+        0
+      ]
+    },
+    "class_type": "ComfyMathExpression",
+    "_meta": {
+      "title": "Math Expression"
+    }
+  },
+  "185": {
+    "inputs": {
+      "scheduler": "simple",
+      "steps": 20,
+      "denoise": 1,
+      "model": [
+        "137",
+        0
+      ]
+    },
+    "class_type": "BasicScheduler",
+    "_meta": {
+      "title": "BasicScheduler"
+    }
+  },
+  "186": {
+    "inputs": {
+      "show_info": true,
+      "mod_1": "(none)",
+      "strength_1": 0.9,
+      "copies_1": 1,
+      "mod_2": "(none)",
+      "strength_2": 1,
+      "copies_2": 1,
+      "mod_3": "(none)",
+      "strength_3": 1,
+      "copies_3": 1,
+      "mod_4": "(none)",
+      "strength_4": 1,
+      "copies_4": 1,
+      "mod_5": "(none)",
+      "strength_5": 1,
+      "copies_5": 1,
+      "mod_6": "(none)",
+      "strength_6": 1,
+      "copies_6": 1,
+      "mod_7": "(none)",
+      "strength_7": 1,
+      "copies_7": 1,
+      "mod_8": "(none)",
+      "strength_8": 1,
+      "copies_8": 1,
+      "max_total_tokens": 0
+    },
+    "class_type": "MiniMaxH3RefModsLoader",
+    "_meta": {
+      "title": "Load H3 RefMods"
+    }
+  },
+  "187": {
+    "inputs": {
+      "override": false,
+      "retention": 0.85,
+      "curve_direction": "constant",
+      "scramble_seed": 181019908,
+      "curve_shape": "linear",
+      "curve_value": 1,
+      "graph_preset": "(none)",
+      "scramble_mode": "shuffle",
+      "scramble_keep": 1,
+      "max_total_tokens": 0,
+      "save_preset_as": "",
+      "conditioning": [
+        "130",
+        0
+      ],
+      "mods": [
+        "186",
+        0
+      ]
+    },
+    "class_type": "MiniMaxH3RefModApply",
+    "_meta": {
+      "title": "Apply H3 RefMod"
+    }
+  }
+}
