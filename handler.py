@@ -46,6 +46,32 @@ JOB_TIMEOUT_S = int(os.environ.get("JOB_TIMEOUT_S", "1800"))
 TEXT_ENCODER = os.environ.get("TEXT_ENCODER", "qwen3vl_32b_minimax_h3_int8_convrot.safetensors")
 ALT_MODEL_ROOTS = [r for r in os.environ.get("ALT_MODEL_ROOTS", "/runpod-volume/ComfyUI/models").split(":") if r]
 
+
+def _model_roots(kind):
+    return [f"{r}/{kind}" for r in ("/runpod-volume/models", *ALT_MODEL_ROOTS, f"{COMFY_DIR}/models")]
+
+
+def _list_models(kind):
+    """Model filenames under every volume/local root for a ComfyUI folder."""
+    exts = (".safetensors", ".ckpt", ".pt", ".pth", ".gguf")
+    return sorted({Path(h).name for root in _model_roots(kind)
+                   for h in glob.glob(f"{root}/**/*", recursive=True) if h.endswith(exts)})
+
+
+def _resolve_model(kind, ref):
+    """A CivitAI version ID (via civitai-download.py's index) or a filename
+    substring → the model filename ComfyUI lists for that folder."""
+    ref = str(ref).strip()
+    if ref.isdigit():
+        for root in _model_roots(kind):
+            idx = Path(root) / ".civitai" / f"{ref}.json"
+            if idx.is_file():
+                return json.loads(idx.read_text())["file"]
+    names = _list_models(kind)
+    return next((n for n in names if n == ref), None) \
+        or next((n for n in names if ref.lower() in n.lower()), None)
+
+
 # Workflows boot-synced from the ForgeHub repo override the baked copies, so a
 # workflow edit lands at the next cold boot without rebuilding the image.
 FH_REPO = os.environ.get("FORGEHUB_REPO", "huchukato/ForgeHub")
@@ -519,6 +545,43 @@ def _patch(prompt, job):
                 for k, v in n.get("inputs", {}).items():
                     if isinstance(v, list) and v and v[0] == drop_lora:
                         n["inputs"][k] = src
+    # job.checkpoint swaps every UNETLoader's weights (CivitAI checkpoints land
+    # in models/checkpoints, registered as a diffusion_models dir). Wins over
+    # the config preset's unet needle.
+    if job.get("checkpoint"):
+        found = _resolve_model("checkpoints", job["checkpoint"]) \
+            or _resolve_model("diffusion_models", job["checkpoint"])
+        if not found:
+            raise RuntimeError(f"checkpoint '{job['checkpoint']}' not found on the volume")
+        for n in prompt.values():
+            if n.get("class_type") == "UNETLoader":
+                n["inputs"]["unet_name"] = found
+    # job.loras = ["<civitai version id | filename>", {"name": ..., "strength": 0.8}, ...]
+    # chains LoraLoaderModelOnly nodes straight after every UNETLoader (both
+    # unets on the Director graphs), ahead of the graph's own turbo/style LoRAs.
+    extra = []
+    for item in job.get("loras") or []:
+        ref, strength = (item, 1.0) if not isinstance(item, dict) else \
+            (item.get("id") or item.get("name"), float(item.get("strength", 1.0)))
+        found = _resolve_model("loras", ref)
+        if not found:
+            raise RuntimeError(f"LoRA '{ref}' not found on the volume")
+        extra.append((found, strength))
+    if extra:
+        for unet_id in [k for k, n in prompt.items() if n.get("class_type") == "UNETLoader"]:
+            src = [unet_id, 0]
+            for i, (name, strength) in enumerate(extra):
+                nid = f"{unet_id}_lora{i}"
+                prompt[nid] = {"class_type": "LoraLoaderModelOnly",
+                               "inputs": {"model": src, "lora_name": name, "strength_model": strength},
+                               "_meta": {"title": f"Job LoRA {name}"}}
+                src = [nid, 0]
+            for k, n in prompt.items():
+                if k.startswith(f"{unet_id}_lora"):
+                    continue
+                for ik, v in n.get("inputs", {}).items():
+                    if v == [unet_id, 0]:
+                        n["inputs"][ik] = src
     # Post-processing toggles: the graph chain is  save.images <- rife.frames
     # <- upscale.images <- VAEDecode.  upscale=false rewires rife.frames to the
     # decoder output; rife=false rewires save.images to rife's own source.
@@ -839,6 +902,8 @@ async def handler(job):
             "comfyui_error": str(_BOOT_ERR) if _BOOT_ERR else None,
             "workflows": sorted({p.name for d in (WF_SYNC_DIR, WORKFLOWS_DIR) for p in d.glob("*.json")}),
             "volume_mounted": os.path.isdir("/runpod-volume"),
+            "loras": _list_models("loras"),
+            "checkpoints": _list_models("checkpoints") + _list_models("diffusion_models"),
         }
     # Any real workload needs ComfyUI — wait for the background boot first.
     await _ensure_comfy()

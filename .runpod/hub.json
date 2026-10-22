@@ -27,6 +27,33 @@
         }
       },
       {
+        "key": "CIVITAI_LORAS",
+        "input": {
+          "name": "CivitAI LoRA IDs",
+          "type": "string",
+          "description": "Comma-separated CivitAI LoRA version IDs downloaded to the volume at boot. Use them in jobs via \"loras\": [\"<id>\"].",
+          "default": ""
+        }
+      },
+      {
+        "key": "CIVITAI_CHECKPOINTS",
+        "input": {
+          "name": "CivitAI checkpoint IDs",
+          "type": "string",
+          "description": "Comma-separated CivitAI checkpoint (MiniMax H3 DiT) version IDs downloaded at boot. Use one in a job via \"checkpoint\": \"<id>\".",
+          "default": ""
+        }
+      },
+      {
+        "key": "CIVITAI_TOKEN",
+        "input": {
+          "name": "CivitAI API token",
+          "type": "string",
+          "description": "Needed for gated / early-access CivitAI models.",
+          "default": ""
+        }
+      },
+      {
         "key": "HF_TOKEN",
         "input": {
           "name": "Hugging Face token",

@@ -30,6 +30,7 @@ A production-ready [Runpod Serverless](https://docs.runpod.io/serverless/overvie
 
 - **GPU**: 96GB class (`BLACKWELL_96` pool). The 32B text encoder + two video DiTs + TensorRT engines need the headroom.
 - **Network volume**: ≥160GB at `/runpod-volume`. Models auto-download from `models-manifest.txt` (~100GB). Disable with `VOLUME_AUTOPOPULATE=false`.
+- **CivitAI downloads** (same env as the Hearmeman pod): `CIVITAI_LORAS` / `CIVITAI_CHECKPOINTS` = comma-separated version IDs, `CIVITAI_TOKEN` for gated models; legacy `LORAS_IDS_TO_DOWNLOAD` / `CHECKPOINT_IDS_TO_DOWNLOAD` / `CIVITAI_API_KEY` accepted. Downloaded once at boot; `"action": "health"` lists the available `loras` / `checkpoints`.
 - **Reusing a pod volume**: models already under `/runpod-volume/ComfyUI/models` (e.g. a volume filled by the [Hearmeman comfyui-minimax](https://github.com/Hearmeman24/comfyui-minimax) pod, where it was `/workspace/ComfyUI/models`) are loaded too and skipped by auto-populate. Override with `ALT_MODEL_ROOTS` (colon-separated).
 - **CUDA**: 13.0+ hosts.
 
@@ -63,6 +64,8 @@ A production-ready [Runpod Serverless](https://docs.runpod.io/serverless/overvie
 - **Director Storyboard**: `prompt` = one idea (timestamps welcome); `images` = up to 3 storyboard frames; `vl_preset` = `MiniMax › Director Storyboard` / `Director Prose`
 - Classic: `config` presets (`native`/`native_turbo`/`r2va_singularity`/`r2va_singularity_turbo`/`10eros`/`10eros_turbo`) swap DiT/LoRA/steps/sampler/shift; `lora` = style LoRA on Singularity (`none`/`realism`/`char_swap`)
 - `video_size` — `auto` (follows the image/stills) or an explicit MMH3 native preset (`1344x768 (16:9)`, `1184x864 (4:3)`, …)
+- `loras` — extra LoRAs chained after every unet: `["<civitai version id>", {"name": "<filename or substring>", "strength": 0.8}]`
+- `checkpoint` — swap the DiT weights (CivitAI version ID or filename from `models/checkpoints` / `diffusion_models`)
 - `upscale` / `rife` — TensorRT post chain · `"action": "health"` — status + workflow list, no generation
 
 ## Custom nodes baked in

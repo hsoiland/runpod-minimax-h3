@@ -26,7 +26,9 @@ model_paths_block() {
 $1:
   base_path: $2
   checkpoints: checkpoints
-  diffusion_models: diffusion_models
+  diffusion_models: |
+    diffusion_models
+    checkpoints
   unet: unet
   loras: loras
   vae: vae
@@ -70,6 +72,21 @@ find /usr /opt -name build_sam.py -exec sed -i 's|torch\.load(f)|torch.load(f, w
 # disable with VOLUME_AUTOPOPULATE=false.
 if [ "${VOLUME_AUTOPOPULATE:-true}" = "true" ]; then
     /opt/serverless/populate-volume.sh || echo "entrypoint: volume populate failed — jobs may error on missing models" >&2
+fi
+
+# CivitAI LoRAs / checkpoints by version ID — same env names as the
+# Hearmeman pod template (legacy spellings + CIVITAI_API_KEY accepted).
+# Checkpoints land in models/checkpoints, which is also registered as a
+# diffusion_models dir above so the graphs' UNETLoaders can pick them.
+[ -z "${CIVITAI_LORAS:-}" ] || [ "$CIVITAI_LORAS" = "replace_with_ids" ] && CIVITAI_LORAS="${LORAS_IDS_TO_DOWNLOAD:-}"
+[ -z "${CIVITAI_CHECKPOINTS:-}" ] || [ "$CIVITAI_CHECKPOINTS" = "replace_with_ids" ] \
+    && CIVITAI_CHECKPOINTS="${CHECKPOINT_IDS_TO_DOWNLOAD:-${SDXL_MODEL_IDS_TO_DOWNLOAD:-}}"
+[ -z "${CIVITAI_TOKEN:-}" ] && CIVITAI_TOKEN="${civitai_token:-${CIVITAI_API_KEY:-}}"
+export CIVITAI_LORAS CIVITAI_CHECKPOINTS CIVITAI_TOKEN
+if [ -d /runpod-volume ]; then
+    # Serialize concurrent cold workers so they don't download the same file.
+    ( flock 8; python3 /opt/serverless/civitai-download.py ) 8>/runpod-volume/.civitai.lock \
+        || echo "entrypoint: some CivitAI downloads failed — jobs using them will error" >&2
 fi
 
 # TensorRT engines: the *-TensorRT-Auto nodes compile engines lazily on first
